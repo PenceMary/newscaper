@@ -29,9 +29,24 @@ def get_xinhua_news():
 
     return news_headlines
 
+def get_bbc_news():
+    url = 'https://www.bbc.com/news'
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+
+    news_headlines = []
+    for item in soup.find_all('h3'):
+        title = item.get_text()
+        link = item.find('a')['href']
+        full_link = f"https://www.bbc.com{link}"
+        news_headlines.append((title, full_link))
+
+    return news_headlines
+
 def main():
     cnn_news = get_cnn_news()
     xinhua_news = get_xinhua_news()
+    bbc_news = get_bbc_news()
 
     print("CNN Latest News:")
     for title, link in cnn_news:
@@ -39,6 +54,10 @@ def main():
 
     print("Xinhua Latest News:")
     for title, link in xinhua_news:
+        print(f"{title}\nLink: {link}\n")
+        
+    print("BBC Latest News:")
+    for title, link in bbc_news:
         print(f"{title}\nLink: {link}\n")
 
 if __name__ == "__main__":
