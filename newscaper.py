@@ -17,11 +17,15 @@ def fetch_news(url, headline_tag, headline_class=None, base_url=''):
     else:
         items = soup.find_all(headline_tag)
 
+    print(f"Found {len(items)} items on {url}")  # 调试信息
+
     for item in items:
-        title = item.get_text()
-        link = item.find('a')['href']
-        full_link = link if link.startswith('http') else f"{base_url}{link}"
-        news_headlines.append((title, full_link))
+        title = item.get_text().strip()
+        link_tag = item.find('a')
+        if link_tag and 'href' in link_tag.attrs:
+            link = link_tag['href']
+            full_link = link if link.startswith('http') else f"{base_url}{link}"
+            news_headlines.append((title, full_link))
 
     return news_headlines
 
@@ -43,8 +47,11 @@ def main():
 
     for source, news in news_sources.items():
         print(f"{source} Latest News:")
-        for title, link in news:
-            print(f"{title}\nLink: {link}\n")
+        if news:
+            for title, link in news:
+                print(f"{title}\nLink: {link}\n")
+        else:
+            print("No news found")
         print("-" * 50)
 
 if __name__ == "__main__":
