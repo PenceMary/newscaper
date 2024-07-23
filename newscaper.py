@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 
 def fetch_news(url, headline_tag, headline_class=None, base_url=''):
+    print(f"Fetching news from: {url}")
     try:
         response = requests.get(url)
         response.raise_for_status()  # 检查请求是否成功
@@ -16,6 +17,8 @@ def fetch_news(url, headline_tag, headline_class=None, base_url=''):
         items = soup.find_all(headline_tag, class_=headline_class)
     else:
         items = soup.find_all(headline_tag)
+
+    print(f"Found {len(items)} items on {url}")  # 调试信息
 
     for item in items:
         title = item.get_text().strip()
