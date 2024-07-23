@@ -1,64 +1,51 @@
 import requests
 from bs4 import BeautifulSoup
 
-def get_cnn_news():
-    url = 'https://edition.cnn.com/world'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
+def fetch_news(url, headline_tag, headline_class=None, base_url=''):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # 检查请求是否成功
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching {url}: {e}")
+        return []
 
+    soup = BeautifulSoup(response.content, 'html.parser')
     news_headlines = []
-    for item in soup.find_all('h3', class_='cd__headline'):
+
+    if headline_class:
+        items = soup.find_all(headline_tag, class_=headline_class)
+    else:
+        items = soup.find_all(headline_tag)
+
+    for item in items:
         title = item.get_text()
         link = item.find('a')['href']
-        full_link = f"https://edition.cnn.com{link}"
+        full_link = link if link.startswith('http') else f"{base_url}{link}"
         news_headlines.append((title, full_link))
 
     return news_headlines
+
+def get_cnn_news():
+    return fetch_news('https://edition.cnn.com/world', 'h3', 'cd__headline', 'https://edition.cnn.com')
 
 def get_xinhua_news():
-    url = 'http://www.xinhuanet.com/english/world/index.htm'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    news_headlines = []
-    for item in soup.find_all('h3'):
-        title = item.get_text()
-        link = item.find('a')['href']
-        full_link = link if link.startswith('http') else f"http://www.xinhuanet.com{link}"
-        news_headlines.append((title, full_link))
-
-    return news_headlines
+    return fetch_news('http://www.xinhuanet.com/english/world/index.htm', 'h3', base_url='http://www.xinhuanet.com')
 
 def get_bbc_news():
-    url = 'https://www.bbc.com/news'
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-
-    news_headlines = []
-    for item in soup.find_all('h3'):
-        title = item.get_text()
-        link = item.find('a')['href']
-        full_link = f"https://www.bbc.com{link}"
-        news_headlines.append((title, full_link))
-
-    return news_headlines
+    return fetch_news('https://www.bbc.com/news', 'h3', base_url='https://www.bbc.com')
 
 def main():
-    cnn_news = get_cnn_news()
-    xinhua_news = get_xinhua_news()
-    bbc_news = get_bbc_news()
+    news_sources = {
+        "CNN": get_cnn_news(),
+        "Xinhua": get_xinhua_news(),
+        "BBC": get_bbc_news()
+    }
 
-    print("CNN Latest News:")
-    for title, link in cnn_news:
-        print(f"{title}\nLink: {link}\n")
-
-    print("Xinhua Latest News:")
-    for title, link in xinhua_news:
-        print(f"{title}\nLink: {link}\n")
-        
-    print("BBC Latest News:")
-    for title, link in bbc_news:
-        print(f"{title}\nLink: {link}\n")
+    for source, news in news_sources.items():
+        print(f"{source} Latest News:")
+        for title, link in news:
+            print(f"{title}\nLink: {link}\n")
+        print("-" * 50)
 
 if __name__ == "__main__":
     main()
